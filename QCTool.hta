@@ -1,0 +1,392 @@
+<html>
+<head>
+<title>Test Case Details</title>
+<HTA:APPLICATION 
+     ID="objTest" 
+     APPLICATIONNAME="Test Case Details"
+     SCROLL="No"
+     SINGLEINSTANCE="yes"
+     MAXIMIZEBUTTON="no"
+     contextmenu="no"
+     navigable="yes"
+     selection="no"
+>
+</head>
+
+<SCRIPT LANGUAGE="VBScript">
+
+	
+	
+	Set QCConnection = CreateObject("TDApiOle80.TDConnection")
+	Dim change, strPrj
+	change = 0
+	strPrj = ""
+
+	 
+
+	Sub Window_onLoad
+    		' resize to quarter of screen area, centered
+    		'window.resizeTo screen.availWidth/2,screen.availHeight/2
+		window.resizeTo 400,350
+    		window.moveTo screen.availWidth/4,screen.availHeight/4
+		Dim StrLogin, serverName, strH1, strUname, strPWD, strBut
+
+		strLogo = ""
+
+		strH1 = "<h3 style=" &chr(34) &"font-family:Verdana" &chr(34) &"align=" &chr(34) &"center" &chr(34) &">Login to Quality Centre</h3><form name=" &chr(34) &"loginPage" &chr(34) &"><TABLE BORDER=" &chr(34) &"0" &chr(34) &">"
+
+		serverName = "<tr><td><p style=" &chr(34) &"font-family:verdana;font-size:13px;" &chr(34) &">Server: </p></td><td><input type=" &chr(34) &"text" &chr(34) &" name=" &chr(34) &"server" &chr(34) &" value=" &chr(34) &"" &chr(34) &" style=" &chr(34) &"font-family:Verdana" &chr(34) &" size = " &chr(34) &"35" &chr(34) &"/></td>"
+
+		strUname = "<tr><td><p style=" &chr(34) &"font-family:verdana;font-size:13px;" &chr(34) &">Username: </p></td><td><input type=" &chr(34) &"text" &chr(34) &" name=" &chr(34) &"userid" &chr(34) &" style=" &chr(34) &"font-family:Verdana;Width:100%" &chr(34) &"/></td></tr>"
+
+		strPWD = "<tr><td><p style=" &chr(34) &"font-family:verdana;font-size:13px;" &chr(34) &">Password: </p></td><td><input type=" &chr(34) &"password" &chr(34) &" name=" &chr(34) &"pswrd" &chr(34) &" style =" &chr(34) &"Width:100%" &chr(34) &" /></td></tr>"
+
+		strBut = "<tr></tr><tr></tr><tr></tr><tr><td></td><td align=" &chr(34) &"right" &chr(34) &"><input type=" &chr(34) &"submit" &chr(34) &" value=" &chr(34) &"Connect" &chr(34) &" onclick = " &chr(34) &"QClogin()" &chr(34) &"/></td></tr></TABLE></form>"
+
+		strLoginHtml = strLogo &strH1 &serverName &strUname &strPWD &strBut
+
+		DataArea.innerHTML = strLoginHtml
+		
+		
+		'generateReportPage()		
+	End Sub 
+
+	Sub Window_onUnload
+		objToNull()
+	End Sub	
+
+	Sub QCLogin
+
+		'On Error Resume Next
+
+		If QCConnection.Connected Then
+			
+        		QCConnection.Logout
+			QCConnection.ReleaseConnection
+
+    		End If
+
+
+		'msgbox loginPage.server.value
+
+		
+		QCConnection.InitConnectionEx loginPage.server.value
+	
+		if QCConnection.connected then
+			'msgbox "Correct Server"
+		else
+			msgbox "Incorrect Server"
+		End If	
+
+		
+		'On Error Resume Next
+		QCConnection.login loginPage.userid.value, loginPage.pswrd.value
+	
+		if QCConnection.LoggedIn then
+			'msgbox "Logged In"
+	
+			connectProj()
+		else
+			msgbox "Incorrect Username/Password"
+		end if
+	End Sub
+
+	Sub connectProj
+		strLogo = ""
+		strDomainDrpDwn = "<TABLE BORDER=" &chr(34) &"0" &chr(34) &" Width = " &chr(34) &"200" &chr(34) &" align = " &chr(34) &"center" &chr(34) &"><tr><td><p style=" &chr(34) &"font-family:verdana;font-size:15px;" &chr(34) &">Domain: </p></td><td><Select id=" &chr(34) &"domain" &chr(34) &" name=" &chr(34) &"domain" &chr(34) &" style=" &chr(34) &"width: 100px;" &chr(34) &" onChange = " &chr(34) &"TestSub()" &chr(34) &">"
+		strDomainValues = "<option>Select</option>"
+		strDomainDrpDwnEnd = "</select></label></td></tr>"
+
+		strPrjDrpDwn = "<tr><td><p style=" &chr(34) &"font-family:verdana;font-size:15px;" &chr(34) &">Project: </p></td><td><Select id=" &chr(34) &"project" &chr(34) &" name=" &chr(34) &"project" &chr(34) &" style=" &chr(34) &"width: 100px;" &chr(34) &" onChange = " &chr(34) &"enableButt()" &chr(34)&" >"
+		strPrjValues = "<option>Select</option>"
+		strprjDrpDwnEnd = "</select></label></td></tr><tr></tr><tr></tr><tr></tr><tr></tr>"
+
+		strProjectButton = "<tr><td></td><td><input type=" &chr(34) &"button" &chr(34) &" id=" &chr(34) &"login" &chr(34) &" disabled value=" &chr(34) &"Login" &chr(34) &" style=" &chr(34) &"width: 100px;" &chr(34) &" onclick = " &chr(34) &"connectQCProject()" &chr(34) &"/></td></tr></TABLE>"
+
+	
+
+		For each sDomain in QCConnection.VisibleDomains
+      			'msgbox "Domain = " &sDomain
+			strDomainValues = strDomainValues &"<option>" &sDomain &"</option>"
+
+			'Set domainOption = Document.createElement("OPTION")
+      			'domainOption.Text = sDomain 
+      			'domainOption.Value = sDomain 
+      			'domain.Add(domainOption)
+		Next
+
+		strDomainDrpDwnHtml = strLogo &"<br></br>" &strDomainDrpDwn &strDomainValues  &strDomainDrpDwnEnd  &strPrjDrpDwn &strPrjValues &strPrjDrpDwnEnd &strProjectButton 
+		
+
+		'msgbox strDomainDrpDwnHtml 
+		DataArea.innerHTML = strDomainDrpDwnHtml 
+
+
+      		
+      		
+	End Sub
+
+	Sub TestSub
+		change = 1
+		strPrj = ""
+    		For Each objOption in domain.Options
+        		If objOption.Selected Then
+            			'Msgbox objOption.InnerText
+				strPrj = "<option>Select</option>"
+
+				For each sPrjct in QCConnection.VisibleProjects(objOption.InnerText)
+					'msgbox sPrjct
+					Set objOption = Document.createElement("OPTION")
+      					objOption.Text = sPrjct
+      					objOption.Value = sPrjct
+      					project.Add(objOption)
+				Next
+        		End If
+    		Next
+		
+	End Sub
+
+	Sub connectQCProject
+		Dim selDomain, selProject
+		For Each domOption in domain.Options
+            		If domOption.Selected Then
+                		selDomain = domOption.InnerText
+            		End If
+        	Next
+
+		For Each prjOption in project.Options
+            		If prjOption.Selected Then
+                		selProject = prjOption.InnerText
+            		End If
+        	Next
+
+		'msgbox domain.innertext
+		'msgbox project.innertext
+		QCConnection.Connect selDomain , selProject 
+		generateReportPage()
+		'createQuery()
+	End Sub
+
+	Sub enableButt
+		For Each prjOption in project.Options
+        		If prjOption.Selected Then
+            			If prjOption.InnerText = "Select" Then
+					login.disabled = true
+				Else
+					login.disabled = false
+				End If
+			End If
+		Next
+	End Sub
+
+	Sub generateReportPage
+
+		window.resizeTo 500,600
+
+		Dim strLogo, strHeadLine, strHint, strInputBox, strOutputBox, strGenBut, strGenHtml 
+
+		strLogo = ""
+		
+		strHeadLine = "<h3 style=" &chr(34) &"font-family:verdana;font-size:15px;" &chr(34) &">Enter test ids</h3>"
+
+		strHint = "<p style=" &chr(34) &"font-family:verdana;font-size:10px;" &chr(34) &">**Note: Each ids should be separated by a comma(,). For example: 100, 101, 102, etc. Do not enter Test Case Ids like WEB_#####</p>"
+
+		strInputBox = "<textarea style = " &chr(34) &"width:100%" &chr(34) &" rows=" &chr(34) &"3" &chr(34) &" cols=" &chr(34) &"36" &chr(34) &" name=" &chr(34) &"inputArea" &chr(34) &"></textarea><br> </br>"
+		
+		strStepDetails = "<label style=" &chr(34) &"font-family:verdana;font-size:15px;" &chr(34) &"><b>Step Details : </b></label>"
+		
+		strStepDropDown = "<select onchange=" &chr(34) &"stepFunc()" &chr(34) &" id=" &chr(34) &"stepDropDown" &chr(34) &"><option value=" &chr(34) &"select" &chr(34) &">Select</option><option value=" &chr(34) &"anyStep" &chr(34) &" &chr(34) &" &chr(34) &">Any Step</option><option value=" &chr(34) &"specificStep" &chr(34) &">Specific Step</option></select><BR></BR>"
+
+		strStepName = "<label style=" &chr(34) &"font-family:verdana;font-size:15px;" &chr(34) &"><b>Step Name : </b></label>"
+
+		strStepNameBox = "<textarea style = " &chr(34) &"width:70%" &chr(34) &" rows=" &chr(34) &"1" &chr(34) &" cols=" &chr(34) &"1" &chr(34) &" name=" &chr(34) &"stepNameArea" &chr(34) &"></textarea><BR></BR>"
+		
+		strUpdateDetails = "<label style=" &chr(34) &"font-family:verdana;font-size:15px;" &chr(34) &"><b>Update Details : </b></label>"
+		
+		strUpdateDropDown = "<select " &" id=" &chr(34) &"updateDropDown" &chr(34) &"><option value=" &chr(34) &"select" &chr(34) &">Select</option><option value=" &chr(34) &"findReplace" &chr(34) &" &chr(34) &" &chr(34) &">Find - Replace Step</option><option value=" &chr(34) &"newUpdate" &chr(34) &">Update New</option></select><BR></BR>"
+
+		strUpdateField = "<label style=" &chr(34) &"font-family:verdana;font-size:15px;" &chr(34) &"><b>Update Field : </b></label><select id=" &chr(34) &"updateFieldDropDown" &chr(34) &"><option value=" &chr(34) &"select" &chr(34) &">Select</option><option value=" &chr(34) &"stepDesc" &chr(34) &" &chr(34) &" &chr(34) &">Step Description</option><option value=" &chr(34) &"stepExpected" &chr(34) &">Step Expected</option></select><BR></BR>"
+		
+		strUpdateType = "<label style=" &chr(34) &"font-family:verdana;font-size:15px;" &chr(34) &"><b>Update Type : </b></label><select onchange=" &chr(34) &"updateTypeFunc()" &chr(34) &" id=" &chr(34) &"updateTypeDropDown" &chr(34) &"><option value=" &chr(34) &"select" &chr(34) &">Select</option><option value=" &chr(34) &"findReplace" &chr(34) &" &chr(34) &" &chr(34) &">Find & Replace</option><option value=" &chr(34) &"fullUpdate" &chr(34) &">Full Update</option></select><BR></BR>"
+		
+		strFindReplaceDiv = "<div id=" &chr(34) &"findReplaceDiv" &chr(34) &" style=" &chr(34) &"display:none;font-family:verdana;font-size:15px;" &chr(34) &"><b>Find : </b><br><textarea style = " &chr(34) &"width:100%" &chr(34) &" rows=" &chr(34) &"1" &chr(34) &" name=" &chr(34) &"findArea" &chr(34) &"></textarea><br></br><b>Replace with : </b><br><textarea style = " &chr(34) &"width:100%" &chr(34) &" rows=" &chr(34) &"1" &chr(34) &" name=" &chr(34) &"replaceArea" &chr(34) &"></textarea></div>"
+		
+		strFullUpdateDiv = "<div id=" &chr(34) &"fullUpdateDiv" &chr(34) &" style=" &chr(34) &"display:none;font-family:verdana;font-size:15px;" &chr(34) &"><b>New Value : </b><br><textarea style = " &chr(34) &"width:100%" &chr(34) &" rows=" &chr(34) &"5" &chr(34) &" name=" &chr(34) &"newUpdateArea" &chr(34) &"></textarea><br></div>"
+		
+		'strStepDesc = "<h3 style=" &chr(34) &"font-family:verdana;font-size:15px;" &chr(34) &">Step Description</h3>"
+
+		'strStepDescBox = "<textarea style = " &chr(34) &"width:100%" &chr(34) &" rows=" &chr(34) &"4" &chr(34) &" cols=" &chr(34) &"36" &chr(34) &" name=" &chr(34) &"stepDescArea" &chr(34) &"></textarea><br> </br>"	
+
+		'strStepExp = "<h3 style=" &chr(34) &"font-family:verdana;font-size:15px;" &chr(34) &">Step Expected</h3>"
+
+		'strStepExpBox = "<textarea style = " &chr(34) &"width:100%" &chr(34) &" rows=" &chr(34) &"4" &chr(34) &" cols=" &chr(34) &"36" &chr(34) &" name=" &chr(34) &"stepExpArea" &chr(34) &"></textarea><br> </br>"		
+
+		strGenBut = "<br><button style=" &chr(34) &"font-family:verdana;font-size:15px; " &chr(34) &" onclick=" &chr(34) &"checkError()" &chr(34) &">Update values</button><br> </br>"
+
+		'strOutputBox = "<textarea style = " &chr(34) &"width:100%" &chr(34) &" rows=" &chr(34) &"8" &chr(34) &" cols=" &chr(34) &"36" &chr(34) &" name=" &chr(34) &"outputArea" &chr(34) &"></textarea>"
+
+		'strGenHtml = strLogo &strHeadLine &strHint &strInputBox &strStepDetails &strStepDropDown &"<div id=step style=" &chr(34) &"display:none" &chr(34) &">" &strStepName &strStepNameBox &"</div>" &strUpdateType &strUpdateField &strStepDesc &strStepDescBox &strStepExp &strStepExpBox &strGenBut 
+		
+		strGenHtml = strLogo &strHeadLine &strHint &strInputBox &strStepDetails &strStepDropDown &"<div id=step style=" &chr(34) &"display:none" &chr(34) &">" &strStepName &strStepNameBox &"</div>" &strUpdateField &strUpdateType &strFindReplaceDiv &strFullUpdateDiv &strGenBut 
+	
+		DataArea.innerHTML = strGenHtml
+	End Sub
+	
+	Function stepFunc()
+		'msgbox dropDown.value
+		if stepDropDown.value="specificStep" Then
+			step.style.display=""
+			'msgbox "specific"
+		else
+			step.style.display="none"
+			'msgbox "any step"
+		end if
+	End Function 
+	
+	Function updateTypeFunc()
+			'msgbox updateTypeDropDown.value
+			if updateTypeDropDown.value="findReplace" Then
+				findReplaceDiv.style.display=""
+				fullUpdateDiv.style.display="none"
+				'msgbox "specific"
+			elseif updateTypeDropDown.value="fullUpdate" Then
+				findReplaceDiv.style.display="none"
+				fullUpdateDiv.style.display=""
+			else
+				findReplaceDiv.style.display="none"
+				fullUpdateDiv.style.display="none"
+			end if
+	End Function 
+	
+	Function checkError
+		strText = inputArea.Value
+			
+	    	'QCConnection.IgnoreHtmlFormat = TRUE
+		If strText="" Then
+			msgbox "Please enter Test Case Id."
+		Else
+			If stepDropDown.value="select" Then
+				msgbox "Please select Step Details field."
+				
+			elseif stepDropDown.value="specificStep" and stepNameArea.value="" Then				
+				msgbox "Please enter specific Step Name."
+				
+			ElseIf updateFieldDropDown.value="select" Then 
+				msgbox "Please select Update Field."
+				
+			Elseif updateTypeDropDown.value="select" Then 
+				msgbox "Please select Update Type."
+				
+			Elseif updateTypeDropDown.value="findReplace" and findArea.value="" Then
+				msgbox "Please enter value to Find Field."
+				
+			Elseif updateTypeDropDown.value="findReplace" and replaceArea.value="" Then
+				msgbox "Please enter value to Replace Field."
+				
+			Elseif updateTypeDropDown.value="fullUpdate" and newUpdateArea.value="" Then
+				msgbox "Please enter New Value."
+				
+			Else
+				doProcess()
+			End If
+			
+		End If
+			
+	End Function
+
+	Function doProcess
+
+		strText = inputArea.Value
+		strArray = Split(strText,",")
+		
+    		'QCConnection.IgnoreHtmlFormat = TRUE
+		
+		for each a in strArray
+			Set MyTest = QCConnection.TestFactory.Item(a)
+			Set TestFact = QCConnection.TestFactory
+			'msgbox QCConnection.username
+			Set StepFact = MyTest.DesignStepFactory
+			Set StepList = StepFact.NewList("")
+			
+			If stepDropDown.value="anyStep" Then
+				for each el_Step in StepList													
+					updateStepValue(el_Step)
+				next
+			elseif stepDropDown.value="specificStep" Then
+				
+				for each el_Step in StepList
+					If trim(el_Step.StepName) = trim(stepNameArea.value) Then								
+						updateStepValue(el_Step)
+					End If
+				next
+			End If	
+
+			Set StepList = Nothing
+			Set StepFact = Nothing
+			Set MyTest = Nothing
+			Set TestFact = Nothing
+			Set tdc = Nothing
+			
+		next
+		
+		msgbox "Completed"
+		
+	End Function 
+
+	Function updateStepValue(el_Step)
+		'msgbox updateFieldDropDown.value
+		If updateFieldDropDown.value="stepDesc" Then
+			If updateTypeDropDown.value="findReplace" Then
+				el_Step.StepDescription = doFindReplace(el_Step.StepDescription)
+				el_Step.Post
+			ElseIF updateTypeDropDown.value="fullUpdate" Then
+				el_Step.StepDescription = newUpdateArea.value
+				el_Step.Post
+			End If
+		
+		ElseIF updateFieldDropDown.value="stepExpected" Then
+			If updateTypeDropDown.value="findReplace" Then
+				el_Step.StepExpectedResult = doFindReplace(el_Step.StepExpectedResult)
+				el_Step.Post
+			ElseIF updateTypeDropDown.value="fullUpdate" Then
+				el_Step.StepExpectedResult = newUpdateArea.value
+				el_Step.Post
+			End If
+		Else
+			msgbox "Please select Update Field."
+		End If
+		
+	End Function
+	
+	Function doFindReplace(text)
+	
+		originalText = text
+		findText = findArea.value
+		replaceWithText = replaceArea.value
+		modifiedText = Replace(text, findText, replaceWithText)
+		'msgbox "Modified Text = " &modifiedText
+		doFindReplace = modifiedText	
+	End Function
+
+	Sub objToNull()
+		QCConnection.DisconnectProject
+		QCConnection.ReleaseConnection
+		Set QCConnection = Nothing
+		Set MyComm = Nothing
+		MessageBody = null
+		Set ol = Nothing
+		Set nameSpace = Nothing
+		Set newMail = Nothing
+	End Sub
+
+</SCRIPT>
+
+<body bgcolor="#D4E0E4">
+	
+	<DIV id = "DataArea"></DIV>
+  
+
+</body>
+
+
+ 
